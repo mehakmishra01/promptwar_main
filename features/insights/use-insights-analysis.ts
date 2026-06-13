@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchDecryptedJournalEntries } from "@/lib/journal/fetch-decrypted-entries";
+import { createClient } from "@/lib/supabase/client";
+import { decryptText } from "@/lib/crypto/journal";
 import type { InsightResponse } from "@/lib/validation/schemas";
 
 /**
  * Encapsulates Mirror Insights fetch and analysis mutations.
- *
- * @param userId - Authenticated user id for journal decryption and cache keys.
- * @returns Insight query state, analyze mutation, and crisis modal controls.
  */
 export function useInsightsAnalysis(userId: string) {
   const [crisisOpen, setCrisisOpen] = useState(false);
@@ -34,17 +32,26 @@ export function useInsightsAnalysis(userId: string) {
 
   const analyzeMutation = useMutation({
     mutationFn: async () => {
-      const decrypted = await fetchDecryptedJournalEntries(userId, { limit: 14, order: "desc" });
-      const entries = decrypted.map((e) => ({
-        body: e.body,
-        moodScore: e.mood_score,
-        date: new Date(e.created_at).toISOString().split("T")[0],
-      }));
+      const supabase = createClient();
+      const { data: entries } = await supabase
+        .from("journal_entries")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(14);
+
+      const decrypted = await Promise.all(
+        (entries ?? []).map(async (e) => ({
+          body: await decryptText(e.encrypted_body, userId),
+          moodScore: e.mood_score,
+          date: new Date(e.created_at).toISOString().split("T")[0],
+        })),
+      );
 
       const res = await fetch("/api/ai/insights", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ forceRefresh: true, entries }),
+        body: JSON.stringify({ forceRefresh: true, entries: decrypted }),
       });
 
       const data = await res.json();

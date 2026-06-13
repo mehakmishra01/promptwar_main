@@ -3,17 +3,29 @@ import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { JournalTimeline } from "@/features/journal/journal-timeline";
 
-vi.mock("@/lib/journal/fetch-decrypted-entries", () => ({
-  fetchDecryptedJournalEntries: vi.fn().mockResolvedValue([
-    {
-      id: "e1",
-      user_id: "u1",
-      mood_score: 4,
-      created_at: "2025-06-01T10:00:00Z",
-      encrypted_body: "enc",
-      body: "Feeling okay about mocks",
-    },
-  ]),
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({
+    from: () => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: "e1",
+            mood_score: 4,
+            created_at: "2025-06-01T10:00:00Z",
+            encrypted_body: "enc",
+          },
+        ],
+        error: null,
+      }),
+    }),
+  }),
+}));
+
+vi.mock("@/lib/crypto/journal", () => ({
+  decryptText: vi.fn().mockResolvedValue("Feeling okay about mocks"),
 }));
 
 function wrapper({ children }: { children: React.ReactNode }) {

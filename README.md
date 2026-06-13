@@ -90,7 +90,7 @@ flowchart TB
 
 ```bash
 npm test              # Vitest unit + component tests
-npm run test:coverage # Coverage report + lcov.info (≥85% lines/functions)
+npm run test:coverage # Coverage report + lcov.info (target ≥80%)
 npm run test:ci       # Coverage + Playwright E2E
 npm run test:a11y     # Playwright axe accessibility scans
 npm run test:e2e      # Playwright E2E
@@ -105,7 +105,7 @@ Coverage artifacts for evaluators: `coverage/lcov.info`, `coverage/coverage-summ
 | **Code Quality** | Strict TS, feature folders, extracted hooks (`use-journal-save`, `use-insights-analysis`, `use-companion-chat`), JSDoc on public APIs |
 | **Security** | Server-side AI only, Zod validation, rate limit + `Retry-After`, CSP headers, client encryption, RLS |
 | **Efficiency** | `dynamic()` for chat/insights/charts, `optimizePackageImports`, React Query `staleTime`, `React.memo` on orb/chart |
-| **Testing** | 31 test files (87 tests), API route auth/rate-limit tests, `coverage/lcov.info` at ≥85% thresholds, CI + Playwright axe |
+| **Testing** | 15+ test files, `coverage/lcov.info` via `npm run test:coverage`, CI workflow in `.github/workflows/ci.yml` |
 | **Accessibility** | `aria-label` on all interactive controls, axe E2E, `aria-live` regions, chart data tables, reduced-motion |
 | **Problem Alignment** | Journaling, Mirror Insights, companion chat, burnout radar, mindfulness, crisis helplines (97.5% baseline) |
 

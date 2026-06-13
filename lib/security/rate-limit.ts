@@ -3,21 +3,11 @@ const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_REQUESTS = 10;
 
-export interface RateLimitResult {
-  allowed: boolean;
-  remaining: number;
-  /** Seconds until the rate-limit window resets. */
-  retryAfterSeconds: number;
-}
-
 /**
- * Rate limiter for AI endpoints (10 requests per 15 minutes per user).
- * Uses Upstash Redis when configured; falls back to in-memory storage in development.
- *
- * @param userId - Authenticated user id.
- * @returns Whether the request is allowed, remaining quota, and retry delay.
+ * Simple in-memory rate limiter for AI endpoints.
+ * Uses Upstash in production when env vars are set.
  */
-export async function checkRateLimit(userId: string): Promise<RateLimitResult> {
+export async function checkRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number }> {
   if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
     try {
       const { Ratelimit } = await import("@upstash/ratelimit");
@@ -31,15 +21,7 @@ export async function checkRateLimit(userId: string): Promise<RateLimitResult> {
         limiter: Ratelimit.slidingWindow(MAX_REQUESTS, "15 m"),
       });
       const result = await ratelimit.limit(`ai:${userId}`);
-      const retryAfterSeconds = Math.max(
-        1,
-        Math.ceil((result.reset - Date.now()) / 1000),
-      );
-      return {
-        allowed: result.success,
-        remaining: result.remaining,
-        retryAfterSeconds,
-      };
+      return { allowed: result.success, remaining: result.remaining };
     } catch {
       // fall through to in-memory
     }
@@ -50,23 +32,13 @@ export async function checkRateLimit(userId: string): Promise<RateLimitResult> {
 
   if (!entry || now > entry.resetAt) {
     rateLimitMap.set(userId, { count: 1, resetAt: now + WINDOW_MS });
-    return {
-      allowed: true,
-      remaining: MAX_REQUESTS - 1,
-      retryAfterSeconds: Math.ceil(WINDOW_MS / 1000),
-    };
+    return { allowed: true, remaining: MAX_REQUESTS - 1 };
   }
 
-  const retryAfterSeconds = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
-
   if (entry.count >= MAX_REQUESTS) {
-    return { allowed: false, remaining: 0, retryAfterSeconds };
+    return { allowed: false, remaining: 0 };
   }
 
   entry.count += 1;
-  return {
-    allowed: true,
-    remaining: MAX_REQUESTS - entry.count,
-    retryAfterSeconds,
-  };
+  return { allowed: true, remaining: MAX_REQUESTS - entry.count };
 }

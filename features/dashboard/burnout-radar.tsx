@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 const BurnoutChart = dynamic(() => import("@/features/dashboard/burnout-chart").then((m) => m.BurnoutChart), {
   ssr: false,
-  loading: () => <Skeleton className="h-64 w-full" role="status" aria-label="Loading burnout chart" />,
+  loading: () => <Skeleton className="h-64 w-full" />,
 });
 
 interface BurnoutRadarProps {

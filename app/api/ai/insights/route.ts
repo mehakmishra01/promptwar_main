@@ -8,15 +8,8 @@ import { buildInsightSystemPrompt, buildInsightUserMessage } from "@/lib/ai/prom
 import { parseInsightResponse } from "@/lib/ai/insight-parser";
 import { insightRequestSchema, type InsightResponse } from "@/lib/validation/schemas";
 import { HELPLINES } from "@/features/crisis/helplines";
-import { rateLimitExceededResponse } from "@/lib/security/rate-limit-response";
 import type { ExamType } from "@/lib/constants";
 
-/**
- * Mirror Insights analysis for authenticated users.
- *
- * @authenticated Requires valid Supabase session cookie.
- * @ratelimit 10 requests per 15 minutes per user; returns 429 with dynamic Retry-After.
- */
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
@@ -30,7 +23,10 @@ export async function POST(request: Request) {
 
     const rateLimit = await checkRateLimit(user.id);
     if (!rateLimit.allowed) {
-      return rateLimitExceededResponse(rateLimit.retryAfterSeconds);
+      return NextResponse.json(
+        { error: "Rate limit exceeded" },
+        { status: 429, headers: { "Retry-After": "900" } },
+      );
     }
 
     const body: unknown = await request.json();
@@ -39,7 +35,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    const { forceRefresh, entries: clientEntries } = parsed.data;
+    const { forceRefresh } = parsed.data;
 
     if (!forceRefresh) {
       const { data: cached } = await supabase
@@ -91,6 +87,10 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+
+    const clientEntries = (
+      body as { entries?: Array<{ body: string; moodScore: number; date: string }> }
+    ).entries;
 
     const journalForPrompt = clientEntries?.length
       ? clientEntries

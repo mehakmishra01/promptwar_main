@@ -19,9 +19,6 @@ const MAX_SCAN_LENGTH = 50000;
 /**
  * Detect acute distress language in user journal or chat text.
  * Pure function — safe to run client- and server-side.
- *
- * @param text - User-authored content to scan.
- * @returns Crisis detection result with severity and matched pattern labels.
  */
 export function detectCrisis(text: string): CrisisResult {
   if (!text || text.trim().length === 0) {

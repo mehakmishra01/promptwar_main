@@ -20,10 +20,10 @@ interface CrisisModalProps {
 export function CrisisModal({ open, onOpenChange }: CrisisModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent aria-describedby="crisis-description">
         <DialogHeader>
           <DialogTitle>You matter — help is available</DialogTitle>
-          <DialogDescription>{CRISIS_DISCLAIMER}</DialogDescription>
+          <DialogDescription id="crisis-description">{CRISIS_DISCLAIMER}</DialogDescription>
         </DialogHeader>
         <ul className="space-y-4" role="list" aria-label="Crisis helplines">
           {HELPLINES.map((helpline) => (

@@ -1,11 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/supabase/types";
 
-/** Fetch the authenticated user's profile.
- *
- * @param userId - Supabase auth user id.
- * @returns Profile row or null when missing.
- */
+/** Fetch the authenticated user's profile. */
 export async function getProfile(userId: string): Promise<Profile | null> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
@@ -14,11 +10,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data as Profile;
 }
 
-/** Fetch the user's most recent mood score.
- *
- * @param userId - Supabase auth user id.
- * @returns Latest mood score (1–5) or undefined when no entries exist.
- */
+/** Fetch the user's most recent mood score. */
 export async function getLatestMoodScore(userId: string): Promise<number | undefined> {
   const supabase = await createClient();
   const { data } = await supabase

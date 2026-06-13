@@ -9,8 +9,6 @@ export interface ChatMessage {
 
 /**
  * Encapsulates companion chat state, crisis detection, and SSE streaming.
- *
- * @returns Chat messages, input handlers, streaming state, and crisis modal controls.
  */
 export function useCompanionChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);

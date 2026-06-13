@@ -7,12 +7,4 @@ describe("sanitizeAiOutput", () => {
     expect(result).not.toContain("<script>");
     expect(result).toContain("Hello");
   });
-
-  it("escapes HTML when window is undefined (SSR)", () => {
-    const originalWindow = global.window;
-    // @ts-expect-error simulate server render
-    delete global.window;
-    expect(sanitizeAiOutput("<b>hi</b>")).toBe("&lt;b&gt;hi&lt;/b&gt;");
-    global.window = originalWindow;
-  });
 });

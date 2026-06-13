@@ -11,15 +11,8 @@ export const journalEntrySchema = z.object({
   moodScore: z.number().int().min(1).max(5),
 });
 
-export const insightEntrySchema = z.object({
-  body: z.string().min(1).max(10000),
-  moodScore: z.number().int().min(1).max(5),
-  date: z.string().min(1),
-});
-
 export const insightRequestSchema = z.object({
   forceRefresh: z.boolean().optional().default(false),
-  entries: z.array(insightEntrySchema).max(14).optional(),
 });
 
 export const chatMessageSchema = z.object({
@@ -30,7 +23,6 @@ export const chatMessageSchema = z.object({
 export const chatRequestSchema = z.object({
   message: z.string().min(1).max(5000),
   history: z.array(chatMessageSchema).max(20).optional().default([]),
-  journalSummary: z.string().max(2000).optional(),
 });
 
 export const triggerSchema = z.object({

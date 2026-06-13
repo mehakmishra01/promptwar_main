@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 96%;
+    --primary: 217 91% 65%;
+    --primary-foreground: 222 47% 6%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 172 66% 50%;
+    --accent-foreground: 222 47% 6%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 217 91% 65%;
+    --radius: 0.75rem;
+    --glow-primary: 217 91% 65%;
+    --glass-bg: 222 47% 9% / 0.6;
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(250 60% 20% / 0.5) 0%,
+      hsl(217 91% 65% / 0.15) 50%,
+      hsl(172 66% 50% / 0.1) 100%
+    );
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      var(--gradient-hero),
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsl(217 91% 65% / 0.12), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(172 66% 50% / 0.08), transparent);
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(12px);
+  }
+
+  .glow-ring {
+    box-shadow:
+      0 0 0 1px hsl(var(--glow-primary) / 0.2),
+      0 0 40px -10px hsl(var(--glow-primary) / 0.35);
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent;
+  }
+
+  .wellness-gradient {
+    background: var(--gradient-hero);
+  }
+
+  .chat-bubble-assistant {
+    @apply border border-accent/20 bg-gradient-to-br from-accent/10 to-primary/5;
+  }
+
+  .chat-bubble-user {
+    @apply border border-primary/20 bg-gradient-to-br from-primary/15 to-primary/5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.sr-only-focusable:focus {
+  @apply not-sr-only absolute left-4 top-4 z-50 rounded-md bg-primary px-4 py-2 text-primary-foreground;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mesh-animate {
+    animation: mesh-shift 20s ease-in-out infinite;
+  }
+}
+
+@keyframes mesh-shift {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}

@@ -1,21 +1,11 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getProfile, getLatestMoodScore } from "@/lib/supabase/queries";
+import { getLatestMoodScore } from "@/lib/supabase/queries";
+import { requireOnboardedUser } from "@/lib/auth/require-onboarded-user";
 import { AppShell } from "@/components/app-shell";
 import { JournalForm } from "@/features/journal/journal-form";
 import { JournalTimeline } from "@/features/journal/journal-timeline";
 
 export default async function JournalPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  const profile = await getProfile(user.id);
-  if (!profile?.onboarding_complete) redirect("/onboarding");
-
+  const { user, profile } = await requireOnboardedUser();
   const latestMood = await getLatestMoodScore(user.id);
 
   return (

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 
 describe("checkRateLimit", () => {
@@ -17,5 +17,21 @@ describe("checkRateLimit", () => {
     const blocked = await checkRateLimit(userId);
     expect(blocked.allowed).toBe(false);
     expect(blocked.remaining).toBe(0);
+    expect(blocked.retryAfterSeconds).toBeGreaterThan(0);
+  });
+
+  it("resets window after expiry", async () => {
+    const userId = `rate-reset-${Date.now()}`;
+    vi.useFakeTimers();
+    for (let i = 0; i < 10; i++) {
+      await checkRateLimit(userId);
+    }
+    const blocked = await checkRateLimit(userId);
+    expect(blocked.allowed).toBe(false);
+
+    vi.advanceTimersByTime(16 * 60 * 1000);
+    const afterReset = await checkRateLimit(userId);
+    expect(afterReset.allowed).toBe(true);
+    vi.useRealTimers();
   });
 });

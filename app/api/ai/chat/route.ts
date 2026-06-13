@@ -6,9 +6,16 @@ import { checkRateLimit } from "@/lib/security/rate-limit";
 import { detectCrisis } from "@/lib/ai/crisis-detector";
 import { buildCompanionSystemPrompt } from "@/lib/ai/prompts/companion-chat";
 import { chatRequestSchema } from "@/lib/validation/schemas";
-import { HELPLINES, THERAPY_DISCLAIMER } from "@/features/crisis/helplines";
+import { HELPLINES, THERAPY_DISCLAIMER, formatHelplineList } from "@/features/crisis/helplines";
+import { rateLimitExceededResponse } from "@/lib/security/rate-limit-response";
 import type { ExamType } from "@/lib/constants";
 
+/**
+ * Streaming companion chat for authenticated users.
+ *
+ * @authenticated Requires valid Supabase session cookie.
+ * @ratelimit 10 requests per 15 minutes per user; returns 429 with dynamic Retry-After.
+ */
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
@@ -22,10 +29,7 @@ export async function POST(request: Request) {
 
     const rateLimit = await checkRateLimit(user.id);
     if (!rateLimit.allowed) {
-      return NextResponse.json(
-        { error: "Rate limit exceeded" },
-        { status: 429, headers: { "Retry-After": "900" } },
-      );
+      return rateLimitExceededResponse(rateLimit.retryAfterSeconds);
     }
 
     const body: unknown = await request.json();
@@ -34,16 +38,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    const { message, history } = parsed.data;
+    const { message, history, journalSummary } = parsed.data;
     const crisis = detectCrisis(message);
 
     if (crisis.isCrisis && crisis.severity === "high") {
       const crisisResponse = `I hear you, and I'm really glad you shared this. ${THERAPY_DISCLAIMER}
 
 What you're feeling matters, and you deserve real support right now. Please reach out to:
-- Tele-MANAS: 14416 (24/7)
-- iCall: 9152987821
-- AASRA: 9820466726
+${formatHelplineList()}
 
 You don't have to go through this alone. Is there someone you trust who you could talk to today?`;
 
@@ -82,13 +84,12 @@ You don't have to go through this alone. Is there someone you trust who you coul
         ? moodScores.reduce((a, b) => a + b, 0) / moodScores.length
         : null;
 
-    const journalSummary =
-      (body as { journalSummary?: string }).journalSummary ?? "Recent journaling activity";
+    const summary = journalSummary ?? "Recent journaling activity";
 
     const systemPrompt = buildCompanionSystemPrompt({
       examType,
       recentMoodAvg,
-      journalSummary,
+      journalSummary: summary,
     });
 
     const apiKey = process.env.ANTHROPIC_API_KEY;

@@ -1,8 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
-import { decryptText } from "@/lib/crypto/journal";
+import { fetchDecryptedJournalEntries } from "@/lib/journal/fetch-decrypted-entries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MOOD_LABELS } from "@/lib/constants";
 
@@ -15,26 +14,7 @@ export function JournalTimeline({ userId }: JournalTimelineProps) {
     queryKey: ["journal-entries", userId],
     staleTime: 60_000,
     gcTime: 5 * 60_000,
-    queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("journal_entries")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(14);
-
-      if (error) throw error;
-
-      const decrypted = await Promise.all(
-        (data ?? []).map(async (entry) => ({
-          ...entry,
-          body: await decryptText(entry.encrypted_body, userId).catch(() => "[encrypted]"),
-        })),
-      );
-
-      return decrypted;
-    },
+    queryFn: () => fetchDecryptedJournalEntries(userId, { limit: 14, order: "desc" }),
   });
 
   if (isLoading) {

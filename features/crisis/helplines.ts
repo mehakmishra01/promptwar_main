@@ -32,3 +32,12 @@ export const CRISIS_DISCLAIMER =
 
 export const THERAPY_DISCLAIMER =
   "I am an AI companion, not a licensed therapist. I can listen and suggest coping strategies, but I cannot provide medical or clinical advice.";
+
+/**
+ * Formats helpline numbers for crisis response messages.
+ *
+ * @returns Bullet list of helpline name and number pairs.
+ */
+export function formatHelplineList(): string {
+  return HELPLINES.map((h) => `- ${h.name}: ${h.number}`).join("\n");
+}

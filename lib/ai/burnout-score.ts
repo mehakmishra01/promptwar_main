@@ -26,6 +26,9 @@ const NEGATIVE_KEYWORDS = [
 /**
  * Calculate burnout risk score (0-100) from mood data and journal text.
  * Pure function for testability.
+ *
+ * @param input - Mood scores, journal bodies, and days since last entry.
+ * @returns Burnout score between 0 and 100.
  */
 export function calculateBurnoutScore(input: BurnoutInput): number {
   const { moodScores, entryBodies, daysSinceLastEntry } = input;
@@ -54,13 +57,23 @@ export function calculateBurnoutScore(input: BurnoutInput): number {
 
 export type BurnoutRisk = "low" | "moderate" | "high";
 
-/** Map burnout score to risk band with accessible label. */
+/** Map burnout score to risk band with accessible label.
+ *
+ * @param score - Burnout score from 0 to 100.
+ * @returns Risk band: low, moderate, or high.
+ */
 export function getBurnoutRisk(score: number): BurnoutRisk {
   if (score >= 70) return "high";
   if (score >= 40) return "moderate";
   return "low";
 }
 
+/**
+ * Human-readable label for a burnout risk band.
+ *
+ * @param risk - Risk band from {@link getBurnoutRisk}.
+ * @returns Accessible description for screen readers and UI.
+ */
 export function getBurnoutRiskLabel(risk: BurnoutRisk): string {
   switch (risk) {
     case "high":

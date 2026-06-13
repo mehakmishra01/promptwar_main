@@ -8,6 +8,9 @@ export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 /**
  * Encapsulates journal entry persistence with debounced autosave.
+ *
+ * @param userId - Authenticated user id for encryption and Supabase inserts.
+ * @returns Debounced save helpers and mutation state.
  */
 export function useJournalSave(userId: string) {
   const queryClient = useQueryClient();
